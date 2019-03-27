@@ -59,6 +59,8 @@ total_df = total_df.merge(chairs, how = "left", left_on = "by_haupt", right_on =
 total_df = total_df.merge(wings, how = "left", left_on = "by_neben", right_on = "by_neben")
 total_df["t2_centered"] = total_df["t2"] - 3 #Wert von 3 entspricht "genau richtig", kleinerer Wert entspricht "zu niedrig", höherer "zu hoch" -> zentrieren
 total_df["f2_centered"] = total_df["f2"] - 3 #Wert von 3 entspricht "genau richtig", kleinerer Wert entspricht "zu niedrig", höherer "zu hoch" -> zentrieren
+total_df["h5_mod"] = total_df["h5"]*1.25 #Nutzt vierer Skala auf Bogen, um Entscheidung zu erzwingen; muss daher auf 5er Skala skaliert werden
+total_df["h6_mod"] = total_df["h6"]*1.25 #Nutzt vierer Skala auf Bogen, um Entscheidung zu erzwingen; muss daher auf 5er Skala skaliert werden
 
 #----------------------------Analysis
 categories = {"f1":["frei","F1_allgemeine_Kompetenz_des_HJ"],
@@ -71,6 +73,8 @@ categories = {"f1":["frei","F1_allgemeine_Kompetenz_des_HJ"],
               "h4":["haupt","H4_konstruktiver_Beitrag_Ergebnisfindung"],
               "h5":["haupt","H5_Feedback_geben"],
               "h6":["haupt","H6_Breakrunde_jurieren"],
+              "h5_mod":["haupt","H5_Mod_Feedback_geben"],
+              "h6_mod":["haupt","H6_Mod_Breakrunde_jurieren"],
               "ergebnisfindung_N":["neben","N1_Punktedifferenz_Juroren"],
               "n2":["neben","N2_allgemeine_Kompetenz_des_HJ"],
               "n3":["neben","N3_Stimmigkeit_Punkte_Begruendungen"],
@@ -154,18 +158,98 @@ neben_summary = total_df.groupby("judge").agg({
         "rank_mn" : "mean",
         "neben_mn" : "mean",
         "n2" : "count"})
-neben_summary.sort_values(by=["mn"], ascending=False).to_excel(path+"/Output/Abweichung.xlsx")
+neben_summary.sort_values(by=["mn"], ascending=False).to_excel(path+"/Output/Neben.xlsx")
 
 cut_off = 5
-total_df["mn"] = total_df[total_df["judge_rank"] >= cut_off][["n2","n3","n4","n5"]].mean(axis = 1)
+total_df["mn_hq"] = total_df[total_df["judge_rank"] >= cut_off][["n2","n3","n4","n5"]].mean(axis = 1)
 total_df["all_mn_hq"] = total_df[total_df["judge_rank"] >= cut_off][["n2_diff_to_all","n3_diff_to_all","n4_diff_to_all","n5_diff_to_all"]].mean(axis = 1)
 total_df["rank_mn_hq"] = total_df[total_df["judge_rank"] >= cut_off][["n2_diff_to_rank","n3_diff_to_rank","n4_diff_to_rank","n5_diff_to_rank"]].mean(axis = 1)
 total_df["neben_mn_hq"] = total_df[total_df["judge_rank"] >= cut_off][["n2_diff_to_neben","n3_diff_to_neben","n4_diff_to_neben","n5_diff_to_neben"]].mean(axis = 1)
 neben_summary_hq = total_df.groupby("judge").agg({
         "judge_rank" : "mean",
-        "mn" : "mean",
-        "all_mn" : "mean",
-        "rank_mn" : "mean",
-        "neben_mn" : "mean",
+        "mn_hq" : "mean",
+        "all_mn_hq" : "mean",
+        "rank_mn_hq" : "mean",
+        "neben_mn_hq" : "mean",
         "n2" : "count"})
-neben_summary_hq.sort_values(by=["mn_hq"], ascending=False).to_excel(path+"/Output/Abweichung.xlsx")
+neben_summary_hq.sort_values(by=["mn_hq"], ascending=False).to_excel(path+"/Output/Neben_HQ.xlsx")
+
+
+#--------------------------Hauptbögen
+total_df["mh"] = total_df[["h2","h3","h4","h5_mod","h5_mod"]].mean(axis = 1)
+total_df["all_mh"] = total_df[["h2_diff_to_all","h3_diff_to_all","h4_diff_to_all","h5_mod_diff_to_all","h6_mod_diff_to_all"]].mean(axis = 1)
+total_df["rank_mh"] = total_df[["h2_diff_to_rank","h3_diff_to_rank","h4_diff_to_rank","h5_mod_diff_to_rank","h6_mod_diff_to_rank"]].mean(axis = 1)
+total_df["haupt_mh"] = total_df[["h2_diff_to_haupt","h3_diff_to_haupt","h4_diff_to_haupt","h5_mod_diff_to_haupt","h6_mod_diff_to_haupt"]].mean(axis = 1)
+haupt_summary = total_df.groupby("judge").agg({
+        "judge_rank" : "mean",
+        "mh" : "mean",
+        "all_mh" : "mean",
+        "rank_mh" : "mean",
+        "haupt_mh" : "mean",
+        "h2" : "count"})
+haupt_summary.sort_values(by=["mh"], ascending=False).to_excel(path+"/Output/Haupt.xlsx")
+
+cut_off = 8
+total_df["mh_hq"] = total_df[total_df["judge_rank"] >= cut_off][["h2","h3","h4","h5_mod","h6_mod"]].mean(axis = 1)
+total_df["all_mh_hq"] = total_df[total_df["judge_rank"] >= cut_off][["h2_diff_to_all","h3_diff_to_all","h4_diff_to_all","h5_mod_diff_to_all","h6_mod_diff_to_all"]].mean(axis = 1)
+total_df["rank_mh_hq"] = total_df[total_df["judge_rank"] >= cut_off][["h2_diff_to_rank","h3_diff_to_rank","h4_diff_to_rank","h5_mod_diff_to_rank","h6_mod_diff_to_rank"]].mean(axis = 1)
+total_df["haupt_mh_hq"] = total_df[total_df["judge_rank"] >= cut_off][["h2_diff_to_haupt","h3_diff_to_haupt","h4_diff_to_haupt","h5_mod_diff_to_haupt","h6_mod_diff_to_haupt"]].mean(axis = 1)
+haupt_summary_hq = total_df.groupby("judge").agg({
+        "judge_rank" : "mean",
+        "mh_hq" : "mean",
+        "all_mh_hq" : "mean",
+        "rank_mh_hq" : "mean",
+        "haupt_mh_hq" : "mean",
+        "h2" : "count"})
+haupt_summary_hq.sort_values(by=["mh_hq"], ascending=False).to_excel(path+"/Output/Haupt_HQ.xlsx")
+
+
+#--------------------------Freie Bögen
+total_df["mf"] = total_df[["f1","f3","f4"]].mean(axis = 1)
+total_df["all_mf"] = total_df[["f1_diff_to_all","f3_diff_to_all","f4_diff_to_all"]].mean(axis = 1)
+total_df["rank_mf"] = total_df[["f1_diff_to_rank","f3_diff_to_rank","f4_diff_to_rank"]].mean(axis = 1)
+total_df["frei_mf"] = total_df[["f1_diff_to_frei","f3_diff_to_frei","f4_diff_to_frei"]].mean(axis = 1)
+frei_summary = total_df.groupby("judge").agg({
+        "judge_rank" : "mean",
+        "mf" : "mean",
+        "all_mf" : "mean",
+        "rank_mf" : "mean",
+        "frei_mf" : "mean",
+        "abweichung" : "mean",  #Achtung, das ist die aggregierte Abweichung von Team und freien Rednern
+        "f1" : "count"}).rename(columns={'mf': 'mf_mean', 'all_mf': 'all_mf_mean', 'rank_mf': 'rank_mf_mean', 'frei_mf': 'frei_mf_mean'})
+frei_summary.sort_values(by=["mf_mean"], ascending=False).to_excel(path+"/Output/Frei.xlsx")
+
+
+#--------------------------Team Bögen
+total_df["mt"] = total_df[["t1","t3","t4","t5"]].mean(axis = 1)
+total_df["all_mt"] = total_df[["t1_diff_to_all","t3_diff_to_all","t4_diff_to_all","t5_diff_to_all"]].mean(axis = 1)
+total_df["rank_mt"] = total_df[["t1_diff_to_rank","t3_diff_to_rank","t4_diff_to_rank","t5_diff_to_rank"]].mean(axis = 1)
+total_df["team_mt"] = total_df[["t1_diff_to_team","t3_diff_to_team","t4_diff_to_team","t5_diff_to_team"]].mean(axis = 1)
+team_summary = total_df.groupby("judge").agg({
+        "judge_rank" : "mean",
+        "mt" : "mean",
+        "all_mt" : "mean",
+        "rank_mt" : "mean",
+        "team_mt" : "mean",
+        "abweichung" : "mean", #Achtung, das ist die aggregierte Abweichung von Team und freien Rednern
+        "t1" : "count"}).rename(columns={'mt': 'mt_mean', 'all_mt': 'all_mt_mean', 'rank_mt': 'rank_mt_mean', 'team_mt': 'team_mt_mean'})
+team_summary.sort_values(by=["mt_mean"], ascending=False).to_excel(path+"/Output/Team.xlsx")
+
+#-------------------------Redner Bögen
+total_df = total_df.merge(frei_summary[["mf_mean","rank_mf_mean","frei_mf_mean"]], left_on="judge", right_index = True, how = "left")
+total_df = total_df.merge(team_summary[["mt_mean","rank_mt_mean","team_mt_mean"]], left_on="judge", right_index = True, how = "left")
+total_df["mredner"] = (2*total_df["mt_mean"]+total_df["mf_mean"])/3
+total_df["mf_global"] = total_df["mf_mean"].mean(axis = 0, skipna = True)
+total_df["mt_global"] = total_df["mt_mean"].mean(axis = 0, skipna = True)
+total_df["m_global"] = (2 * total_df["mt_global"] + total_df["mf_global"])/3
+total_df["total_diff_to_all"] = total_df["mredner"]-total_df["m_global"]
+total_df["total_diff_to_rank"] = (2 * total_df["rank_mt_mean"] + total_df["rank_mf_mean"])/3
+total_df["total_diff_to_speaker"] = (2 * total_df["team_mt_mean"] + total_df["frei_mf_mean"])/3
+speaker_summary = total_df.groupby("judge").agg({
+        "judge_rank" : "mean",
+        "mredner" : "mean",
+        "total_diff_to_all" : "mean",
+        "total_diff_to_rank" : "mean",
+        "t1" : "count",
+        "f1" : "count"})
+speaker_summary.sort_values(by=["mredner"], ascending=False).to_excel(path+"/Output/Speaker.xlsx")
